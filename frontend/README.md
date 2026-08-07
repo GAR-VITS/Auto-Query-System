@@ -1,16 +1,71 @@
-# React + Vite
+# NexusDB — Agentic Enterprise Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend for the **Self-Correcting Multi-Agent Framework for Natural Language Database Navigation and Autonomous Enterprise Workflow Execution** project.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Dashboard** — Agent status, stats, recent queries, project roadmap
+- **Query Workspace** — Natural language to SQL with mock agent pipeline
+- **Analytics** — Chart.js visualizations (loan risk, repayment rates, agent success)
+- **Audit Trail** — Compliance logs with agent reasoning
+- **Settings** — RBAC roles, API config, voice input placeholder
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript
+- Vite 8
+- Tailwind CSS 4
+- React Router 7
+- Chart.js + react-chartjs-2
+- Framer Motion
+- Lucide React icons
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+src/
+├── components/
+│   ├── audit/          # Audit log components
+│   ├── charts/         # Chart.js wrappers
+│   ├── common/         # Reusable UI (Button, Card, Badge...)
+│   ├── dashboard/      # Dashboard widgets
+│   ├── layout/         # Sidebar, Header, MainLayout
+│   ├── query/          # NL query input & suggestions
+│   └── results/        # Data tables, SQL preview, analysis
+├── constants/          # Navigation, app config
+├── data/               # Mock data for offline demo
+├── hooks/              # useQuery hook
+├── pages/              # Route pages
+├── services/           # API layer (falls back to mock)
+└── types/              # TypeScript interfaces
+```
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173)
+
+## Backend Integration
+
+Set `VITE_API_URL` in `.env` to your FastAPI backend:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+Expected endpoints:
+- `POST /api/query` — `{ question, voice? }` → `{ success, result?, error? }`
+- `GET /health` — Health check
+
+When the backend is unavailable, the app uses mock data automatically.
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
