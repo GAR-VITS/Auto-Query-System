@@ -78,7 +78,7 @@ export function QueryInput({ onSubmit, loading, agentStatus }: QueryInputProps) 
 
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-500">
-              Powered by Gemini 1.5 Pro · LangChain · CrewAI agents
+              Powered by Gemini 2.0 Flash · PostgreSQL · Natural language to SQL
             </p>
             <Button type="submit" loading={loading} icon={<Send className="h-4 w-4" />}>
               Run Query

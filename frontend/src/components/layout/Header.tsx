@@ -2,9 +2,11 @@ import { Bell, Circle, Search, User } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { NAV_ITEMS } from '@/constants/navigation'
 import { Badge } from '@/components/common/Badge'
+import { useBackendHealth } from '@/hooks/useBackendHealth'
 
 export function Header() {
   const location = useLocation()
+  const backendOnline = useBackendHealth()
   const currentPage = NAV_ITEMS.find(
     (item) => item.path === location.pathname || (item.path !== '/' && location.pathname.startsWith(item.path)),
   ) ?? NAV_ITEMS[0]
@@ -31,9 +33,19 @@ export function Header() {
           </kbd>
         </div>
 
-        <Badge variant="success" dot>
-          Backend Offline (Mock)
-        </Badge>
+        {backendOnline === null ? (
+          <Badge variant="default" dot>
+            Checking backend...
+          </Badge>
+        ) : backendOnline ? (
+          <Badge variant="success" dot>
+            Backend Online
+          </Badge>
+        ) : (
+          <Badge variant="warning" dot>
+            Backend Offline
+          </Badge>
+        )}
 
         <button className="relative rounded-xl p-2 text-slate-400 transition hover:bg-surface-700/50 hover:text-slate-200">
           <Bell className="h-5 w-5" />
