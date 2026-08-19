@@ -13,7 +13,8 @@ import {
   recentQueries as mockRecentQueries,
 } from '@/data/mockData'
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const rawUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim()
+const API_BASE = rawUrl ? rawUrl.replace(/\/+$/, '') : 'http://localhost:8000'
 
 async function parseErrorResponse(response: Response): Promise<string> {
   try {

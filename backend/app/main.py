@@ -27,17 +27,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Robust CORS configuration for local and cloud deployment (Render, Vercel, Netlify, custom domains)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:4173",
-        "http://127.0.0.1:4173",
-        "http://localhost:3000",
-        "http://localhost:8000",
-        "*",
-    ],
+    allow_origins=settings.allowed_origins if settings.allowed_origins != ["*"] else ["*"],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,4 +67,5 @@ async def health():
 
 
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port)

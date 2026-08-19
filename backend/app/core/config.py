@@ -1,6 +1,7 @@
 import os
 from functools import lru_cache
 from pathlib import Path
+from typing import List
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -30,6 +31,16 @@ class Settings:
         self.enable_voice_input: bool = (
             os.getenv("ENABLE_VOICE_INPUT", "true").lower() == "true"
         )
+        self.port: int = int(os.getenv("PORT", "8000"))
+
+        # CORS Allowed Origins
+        allowed_raw = os.getenv("ALLOWED_ORIGINS", "*")
+        if allowed_raw.strip() == "*":
+            self.allowed_origins: List[str] = ["*"]
+        else:
+            self.allowed_origins: List[str] = [
+                origin.strip() for origin in allowed_raw.split(",") if origin.strip()
+            ]
 
 
 @lru_cache

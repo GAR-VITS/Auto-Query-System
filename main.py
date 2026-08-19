@@ -1,10 +1,8 @@
 """
 Unified entrypoint for the Agentic AI platform backend.
-Run with:
-    python main.py
-or:
-    uvicorn backend.app.main:app --reload
+Runs FastAPI on host 0.0.0.0 and dynamically binds to Render / Cloud $PORT.
 """
+import os
 import sys
 from pathlib import Path
 
@@ -17,4 +15,5 @@ from app.main import app
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
