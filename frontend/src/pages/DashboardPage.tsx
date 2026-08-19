@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Zap } from 'lucide-react'
@@ -6,10 +7,43 @@ import { AgentStatusPanel } from '@/components/dashboard/AgentStatusPanel'
 import { RecentQueries } from '@/components/dashboard/RecentQueries'
 import { Button } from '@/components/common/Button'
 import { Card } from '@/components/common/Card'
-import { dashboardStats, agents, recentQueries } from '@/data/mockData'
+import { dashboardStats as initialStats, agents as initialAgents, recentQueries as initialQueries } from '@/data/mockData'
+import { fetchDashboardStats, fetchAgents, fetchRecentQueries } from '@/services/api'
 import { APP_TAGLINE } from '@/constants/navigation'
+import type { DashboardStat, AgentInfo, QueryResult } from '@/types'
 
 export function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStat[]>(initialStats)
+  const [agentList, setAgentList] = useState<AgentInfo[]>(initialAgents)
+  const [queries, setQueries] = useState<QueryResult[]>(initialQueries)
+
+  useEffect(() => {
+    let active = true
+
+    const loadLiveData = async () => {
+      try {
+        const [liveStats, liveAgents, liveQueries] = await Promise.all([
+          fetchDashboardStats(),
+          fetchAgents(),
+          fetchRecentQueries(),
+        ])
+        if (active) {
+          if (liveStats && liveStats.length > 0) setStats(liveStats)
+          if (liveAgents && liveAgents.length > 0) setAgentList(liveAgents)
+          if (liveQueries && liveQueries.length > 0) setQueries(liveQueries)
+        }
+      } catch {
+        // use initial mock states
+      }
+    }
+
+    loadLiveData()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <div className="space-y-6">
       <motion.div
@@ -34,29 +68,29 @@ export function DashboardPage() {
       </motion.div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {dashboardStats.map((stat, i) => (
+        {stats.map((stat, i) => (
           <StatCard key={stat.label} stat={stat} index={i} />
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <AgentStatusPanel agents={agents} />
+          <AgentStatusPanel agents={agentList} />
         </div>
         <div className="lg:col-span-3">
-          <RecentQueries queries={recentQueries} />
+          <RecentQueries queries={queries} />
         </div>
       </div>
 
       <Card>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
-          Project Roadmap
+          Project Architecture & Pipeline
         </h3>
         <div className="grid gap-3 sm:grid-cols-3">
           {[
-            { phase: 'Phase I', title: 'NL-to-SQL Pipeline', status: 'Active', desc: 'Gemini + LangChain + React dashboard' },
-            { phase: 'Phase II', title: 'Multi-Agent Intelligence', status: 'Planned', desc: 'CrewAI agents, self-correction, ChromaDB' },
-            { phase: 'Phase III', title: 'Secure Automation', status: 'Planned', desc: 'RBAC, voice input, audit trails' },
+            { phase: 'Natural Language Engine', title: 'NL-to-SQL Agent Pipeline', status: 'Connected', desc: 'Gemini 2.5 Flash + PostgreSQL & SQLite local database' },
+            { phase: 'Self-Correction Loop', title: 'Error-Driven Reflection', status: 'Connected', desc: 'Autonomous multi-turn SQL error recovery and validation' },
+            { phase: 'Enterprise Compliance', title: 'Audit Trail & RBAC', status: 'Active', desc: 'Read-only safety guardrails and autonomous action logging' },
           ].map((item) => (
             <div
               key={item.phase}
@@ -67,11 +101,7 @@ export function DashboardPage() {
                   {item.phase}
                 </span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                    item.status === 'Active'
-                      ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'bg-surface-600/40 text-slate-500'
-                  }`}
+                  className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-400"
                 >
                   {item.status}
                 </span>

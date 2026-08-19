@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Mic, MicOff, Send, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
@@ -15,15 +15,95 @@ interface QueryInputProps {
 export function QueryInput({ onSubmit, loading, agentStatus }: QueryInputProps) {
   const [question, setQuestion] = useState('')
   const [voiceActive, setVoiceActive] = useState(false)
+  const [voiceTranscript, setVoiceTranscript] = useState('')
+  const recognitionRef = useRef<any>(null)
+
+  useEffect(() => {
+    // Check for browser Speech Recognition API
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition()
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.lang = 'en-US'
+
+      recognition.onresult = (event: any) => {
+        let interim = ''
+        let final = ''
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            final += event.results[i][0].transcript
+          } else {
+            interim += event.results[i][0].transcript
+          }
+        }
+
+        const newText = final || interim
+        if (newText) {
+          setVoiceTranscript(newText)
+          setQuestion((prev) => (final ? (prev ? `${prev} ${final}` : final) : prev))
+        }
+      }
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error)
+        setVoiceActive(false)
+      }
+
+      recognition.onend = () => {
+        setVoiceActive(false)
+      }
+
+      recognitionRef.current = recognition
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop()
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim() || loading) return
+    if (voiceActive && recognitionRef.current) {
+      recognitionRef.current.stop()
+      setVoiceActive(false)
+    }
     onSubmit(question.trim(), voiceActive)
   }
 
   const toggleVoice = () => {
-    setVoiceActive(!voiceActive)
+    if (!recognitionRef.current) {
+      // Fallback message if browser has no speech API
+      setVoiceActive(!voiceActive)
+      return
+    }
+
+    if (voiceActive) {
+      try {
+        recognitionRef.current.stop()
+      } catch {
+        // ignore
+      }
+      setVoiceActive(false)
+    } else {
+      try {
+        setVoiceTranscript('Listening...')
+        recognitionRef.current.start()
+        setVoiceActive(true)
+      } catch {
+        setVoiceActive(false)
+      }
+    }
   }
 
   return (
@@ -59,7 +139,7 @@ export function QueryInput({ onSubmit, loading, agentStatus }: QueryInputProps) 
                   ? 'bg-red-500/20 text-red-400 animate-pulse'
                   : 'text-slate-500 hover:bg-surface-700 hover:text-slate-300'
               }`}
-              title={voiceActive ? 'Stop voice input' : 'Start voice input'}
+              title={voiceActive ? 'Stop voice input' : 'Start voice input (Speech-to-Text)'}
             >
               {voiceActive ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             </button>
@@ -72,13 +152,13 @@ export function QueryInput({ onSubmit, loading, agentStatus }: QueryInputProps) 
               className="flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400"
             >
               <span className="h-2 w-2 animate-pulse rounded-full bg-red-400" />
-              Voice input ready — speak your query (Phase III integration)
+              {voiceTranscript || 'Listening... Speak your database query now.'}
             </motion.div>
           )}
 
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-500">
-              Powered by Gemini 2.0 Flash · PostgreSQL · Natural language to SQL
+              Powered by Gemini 2.5 Flash · PostgreSQL & SQLite · Natural language to SQL
             </p>
             <Button type="submit" loading={loading} icon={<Send className="h-4 w-4" />}>
               Run Query

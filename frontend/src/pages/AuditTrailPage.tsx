@@ -1,14 +1,40 @@
+import { useEffect, useState } from 'react'
 import { AuditLogTable } from '@/components/audit/AuditLogTable'
 import { Card } from '@/components/common/Card'
-import { auditEntries } from '@/data/mockData'
+import { auditEntries as initialAuditEntries } from '@/data/mockData'
+import { fetchAuditEntries } from '@/services/api'
 import { ShieldCheck, FileText, Lock } from 'lucide-react'
+import type { AuditEntry } from '@/types'
 
 export function AuditTrailPage() {
+  const [entries, setEntries] = useState<AuditEntry[]>(initialAuditEntries)
+
+  useEffect(() => {
+    let active = true
+
+    const loadLiveAudit = async () => {
+      try {
+        const liveEntries = await fetchAuditEntries()
+        if (active && liveEntries && liveEntries.length > 0) {
+          setEntries(liveEntries)
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    loadLiveAudit()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { icon: ShieldCheck, label: 'Total Events', value: auditEntries.length, color: 'text-emerald-400' },
+          { icon: ShieldCheck, label: 'Total Events', value: entries.length, color: 'text-emerald-400' },
           { icon: FileText, label: 'Pending Approvals', value: 1, color: 'text-amber-400' },
           { icon: Lock, label: 'RBAC Violations', value: 0, color: 'text-cyan-400' },
         ].map(({ icon: Icon, label, value, color }) => (
@@ -24,7 +50,7 @@ export function AuditTrailPage() {
         ))}
       </div>
 
-      <AuditLogTable entries={auditEntries} />
+      <AuditLogTable entries={entries} />
     </div>
   )
 }
