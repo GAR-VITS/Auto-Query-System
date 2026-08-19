@@ -1,12 +1,25 @@
 import os
+import sys
 from pathlib import Path
 from contextlib import asynccontextmanager
+
+# Automatically ensure both backend directory and root directory are in sys.path
+backend_dir = Path(__file__).resolve().parent.parent
+root_dir = backend_dir.parent
+for d in [str(backend_dir), str(root_dir)]:
+    if d not in sys.path:
+        sys.path.insert(0, d)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from app.api.query import router as query_router
-from app.core.config import get_settings
+try:
+    from app.api.query import router as query_router
+    from app.core.config import get_settings
+except ImportError:
+    from backend.app.api.query import router as query_router
+    from backend.app.core.config import get_settings
 
 settings = get_settings()
 
@@ -15,7 +28,10 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Ensure SQLite fallback database is initialized if not present
     if not settings.sqlite_db_path.exists():
-        from backend.db.init_sqlite import init_sqlite_database
+        try:
+            from db.init_sqlite import init_sqlite_database
+        except ImportError:
+            from backend.db.init_sqlite import init_sqlite_database
         init_sqlite_database(settings.sqlite_db_path)
     yield
 
@@ -68,4 +84,4 @@ async def health():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -5,7 +5,10 @@ from typing import Any, Dict, Optional
 
 import google.generativeai as genai
 
-from app.core.config import get_settings
+try:
+    from app.core.config import get_settings
+except ImportError:
+    from backend.app.core.config import get_settings
 
 logger = logging.getLogger("gemini_service")
 

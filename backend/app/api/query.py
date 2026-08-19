@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sqlite3
+import sys
 import time
 import uuid
 from datetime import datetime, timezone
@@ -15,16 +16,35 @@ import psycopg
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 
-from app.core.config import get_settings
-from app.schemas.query import (
-    AgentInfoItem,
-    AuditEntryItem,
-    DashboardStatItem,
-    QueryRequest,
-    QueryResponse,
-    QueryResult,
-)
-from app.services.gemini import generate_sql_and_analysis
+# Automatically ensure backend directory and root directory are in sys.path
+backend_dir = Path(__file__).resolve().parent.parent.parent
+root_dir = backend_dir.parent
+for d in [str(backend_dir), str(root_dir)]:
+    if d not in sys.path:
+        sys.path.insert(0, d)
+
+try:
+    from app.core.config import get_settings
+    from app.schemas.query import (
+        AgentInfoItem,
+        AuditEntryItem,
+        DashboardStatItem,
+        QueryRequest,
+        QueryResponse,
+        QueryResult,
+    )
+    from app.services.gemini import generate_sql_and_analysis
+except ImportError:
+    from backend.app.core.config import get_settings
+    from backend.app.schemas.query import (
+        AgentInfoItem,
+        AuditEntryItem,
+        DashboardStatItem,
+        QueryRequest,
+        QueryResponse,
+        QueryResult,
+    )
+    from backend.app.services.gemini import generate_sql_and_analysis
 
 logger = logging.getLogger("query_api")
 router = APIRouter()
