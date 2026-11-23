@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: nexusdb-postgres
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus_owner
+      POSTGRES_PASSWORD: owner_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/db/seed/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus_owner -d nexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nexusdb-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL_OWNER: postgresql+psycopg://nexus_owner:owner_secret@db:5432/nexus
+      DATABASE_URL_READER: postgresql+psycopg://nexus_reader:reader_secret@db:5432/nexus
+      DATABASE_URL_WRITER: postgresql+psycopg://nexus_writer:writer_secret@db:5432/nexus
+      JWT_SECRET: nexusdb-super-secret-production-key-2026-secure
+      DEMO_MODE: "true"
+      MAX_RETRIES: "3"
+      STATEMENT_TIMEOUT_MS: "5000"
+      ROW_CAP: "1000"
+      TOP_K_SCHEMA_SLICES: "8"
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000"
+      CHROMA_PATH: "/data/chroma"
+    volumes:
+      - chromadata:/data/chroma
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexusdb-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  chromadata:
