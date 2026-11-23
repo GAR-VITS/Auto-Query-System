@@ -72,11 +72,26 @@ def get_db_connection(role: str = "nexus_reader") -> Generator[Any, None, None]:
         with engine.connect() as conn:
             yield conn
     else:
-        # SQLite connection context
+        # SQLite connection context with attached schemas (bank, app, audit)
         db_file = get_sqlite_path()
         conn = sqlite3.connect(str(db_file))
         conn.row_factory = sqlite3.Row
         try:
+            # Attach self as bank, app, audit schemas so schema-qualified SQL works natively
+            db_path_str = str(db_file).replace('\\', '/')
+            try:
+                conn.execute(f"ATTACH '{db_path_str}' AS bank")
+            except Exception:
+                pass
+            try:
+                conn.execute(f"ATTACH '{db_path_str}' AS app")
+            except Exception:
+                pass
+            try:
+                conn.execute(f"ATTACH '{db_path_str}' AS audit")
+            except Exception:
+                pass
+
             yield conn
             conn.commit()
         except Exception:

@@ -1,0 +1,41 @@
+version: "1.0"
+terms:
+  - term: "delinquent"
+    definition: "A loan is considered delinquent when repayment installment is overdue by 30 or more days (days_past_due >= 30)."
+    sql_hint: "repayments.days_past_due >= 30"
+    related_tables: ["repayments", "loans"]
+
+  - term: "defaulter"
+    definition: "Borrower customer with one or more delinquent loans where repayments.days_past_due >= 30."
+    sql_hint: "repayments.days_past_due >= 30"
+    related_tables: ["customers", "loans", "repayments"]
+
+  - term: "NPA"
+    definition: "Non-Performing Asset (NPA) defined as repayments overdue by 90 or more days (days_past_due >= 90) per RBI banking guidelines."
+    sql_hint: "repayments.days_past_due >= 90"
+    related_tables: ["repayments", "loans"]
+
+  - term: "active customer"
+    definition: "A customer who has at least one account in ACTIVE status."
+    sql_hint: "accounts.status = 'ACTIVE'"
+    related_tables: ["customers", "accounts"]
+
+  - term: "credit tiers"
+    definition: "Standard Indian credit rating tier bands: Tier A (750-900 Prime), Tier B (700-749 Good), Tier C (650-699 Fair), Tier D (600-649 Subprime), Tier E (300-599 Deep Subprime)."
+    sql_hint: "credit_scores.score BETWEEN credit_tiers.min_score AND credit_tiers.max_score"
+    related_tables: ["credit_scores", "credit_tiers", "customers"]
+
+  - term: "loan delinquency rate"
+    definition: "Percentage of active disbursed loans having repayments with days_past_due >= 30."
+    sql_hint: "COUNT(DISTINCT CASE WHEN r.days_past_due >= 30 THEN l.loan_id END) * 100.0 / COUNT(DISTINCT l.loan_id)"
+    related_tables: ["loans", "repayments", "branches"]
+
+  - term: "reconciliation mismatch"
+    definition: "Discrepancy between general ledger liability balance in ledger_entries.credit and customer accounts.balance."
+    sql_hint: "ABS(a.balance - le.credit) > 0.01"
+    related_tables: ["accounts", "ledger_entries", "gl_accounts"]
+
+  - term: "quarterly date logic"
+    definition: "Current calendar quarter relative to CURRENT_DATE (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec)."
+    sql_hint: "txn_ts >= date_trunc('quarter', CURRENT_DATE)"
+    related_tables: ["transactions", "accounts"]
