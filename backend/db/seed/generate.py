@@ -78,6 +78,7 @@ def generate_database(db_path: Path, full_scale: bool = False):
     cur = conn.cursor()
 
     print(f"[*] Initializing schemas and tables in {db_path}...")
+    conn.execute("PRAGMA foreign_keys = OFF;")
 
     # Drop existing tables cleanly
     tables_to_drop = [
@@ -463,6 +464,12 @@ def generate_database(db_path: Path, full_scale: bool = False):
 
     cur.executemany("INSERT INTO accounts VALUES (?, ?, ?, ?, ?, ?, ?)", account_rows)
 
+    # Ensure demonstration account 10482 exists (matches example chip in section 15.7)
+    cur.execute("""
+    INSERT OR REPLACE INTO accounts (account_id, customer_id, type_id, branch_id, status, balance, opened_at)
+    VALUES (10482, 1, 1, 1, 'ACTIVE', 85400.50, '2024-05-10 10:00:00');
+    """)
+
     # Cards
     print("[*] Generating Cards...")
     card_rows = []
@@ -599,16 +606,24 @@ def generate_database(db_path: Path, full_scale: bool = False):
 
     # Audit: Genesis Entry
     print("[*] Creating Audit Trail Genesis Row...")
-    genesis_prev_hash = "0" * 64
-    genesis_payload = canonical_json({"system": "NexusDB", "event": "GENESIS_INITIALIZED"})
-    hasher = hashlib.sha256()
-    hasher.update((genesis_prev_hash + genesis_payload).encode("utf-8"))
-    genesis_row_hash = hasher.hexdigest()
+    from app.governance.audit import compute_row_hash, GENESIS_PREV_HASH
+    genesis_ts = "2026-11-24T00:00:00+00:00"
+    genesis_payload = {"system": "NexusDB", "event": "GENESIS_INITIALIZED"}
+    genesis_row_hash = compute_row_hash(
+        prev_hash=GENESIS_PREV_HASH,
+        seq=1,
+        ts=genesis_ts,
+        request_id="genesis-req-0000",
+        user_id="system",
+        event_type="LOGIN",
+        status="SUCCESS",
+        payload=genesis_payload,
+    )
 
     cur.execute("""
     INSERT INTO audit_log (seq, ts, request_id, user_id, role, event_type, status, payload, prev_hash, row_hash)
-    VALUES (1, CURRENT_TIMESTAMP, 'genesis-req-0000', 'system', 'system', 'LOGIN', 'SUCCESS', ?, ?, ?)
-    """, (genesis_payload, genesis_prev_hash, genesis_row_hash))
+    VALUES (1, ?, 'genesis-req-0000', 'system', 'system', 'LOGIN', 'SUCCESS', ?, ?, ?)
+    """, (genesis_ts, json.dumps(genesis_payload), GENESIS_PREV_HASH, genesis_row_hash))
 
     conn.commit()
     conn.close()
