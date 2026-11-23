@@ -39,8 +39,8 @@ class ConfirmResult(BaseModel):
     details: dict[str, Any] = Field(default_factory=dict)
 
 
-# In-memory idempotency cache for confirmation requests (keyed by idempotency_key)
-_processed_idempotency_keys: set[str] = set()
+# In-memory idempotency cache for confirmation requests (mapping idempotency_key to audit_seq)
+_processed_idempotency_keys: dict[str, int] = {}
 
 
 def generate_confirmation_token(user_id: str, action_name: str, params: dict[str, Any]) -> tuple[str, float]:
@@ -184,7 +184,7 @@ class ActionManager:
             return ConfirmResult(
                 success=True,
                 message="Action already applied previously (idempotency key matched).",
-                audit_seq=0,
+                audit_seq=_processed_idempotency_keys[idempotency_key],
                 action_name=action_name,
             )
 
@@ -216,7 +216,7 @@ class ActionManager:
                 payload={"action": action_name, "account_id": account_id, "new_status": new_status, "reason": reason}
             )
 
-            _processed_idempotency_keys.add(idempotency_key)
+            _processed_idempotency_keys[idempotency_key] = audit_ev.seq
             return ConfirmResult(
                 success=True,
                 message=f"Applied. Audit entry #{audit_ev.seq}",
@@ -247,7 +247,7 @@ class ActionManager:
                 payload={"action": action_name, "account_id": account_id, "flag_type": flag_type, "severity": severity}
             )
 
-            _processed_idempotency_keys.add(idempotency_key)
+            _processed_idempotency_keys[idempotency_key] = audit_ev.seq
             return ConfirmResult(
                 success=True,
                 message=f"Applied. Audit entry #{audit_ev.seq}",

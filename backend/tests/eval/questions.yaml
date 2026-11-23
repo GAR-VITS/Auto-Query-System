@@ -1,0 +1,368 @@
+questions:
+  # Category 1: Simple single-table aggregation (5)
+  - id: q01
+    natural_language_query: "How many total customers are registered?"
+    category: "simple_aggregation"
+    gold_sql: "SELECT count(*) as total_customers FROM bank.customers"
+    expected_row_count_min: 1
+    expected_columns: ["total_customers"]
+    must_contain_tables: ["bank.customers"]
+    should_clarify: false
+
+  - id: q02
+    natural_language_query: "What is the total balance across all active accounts?"
+    category: "simple_aggregation"
+    gold_sql: "SELECT sum(balance) as total_balance FROM bank.accounts WHERE status = 'ACTIVE'"
+    expected_row_count_min: 1
+    expected_columns: ["total_balance"]
+    must_contain_tables: ["bank.accounts"]
+    should_clarify: false
+
+  - id: q03
+    natural_language_query: "What is the average credit score of customers?"
+    category: "simple_aggregation"
+    gold_sql: "SELECT avg(score) as avg_credit_score FROM bank.credit_scores"
+    expected_row_count_min: 1
+    expected_columns: ["avg_credit_score"]
+    must_contain_tables: ["bank.credit_scores"]
+    should_clarify: false
+
+  - id: q04
+    natural_language_query: "How many loans are currently disbursed?"
+    category: "simple_aggregation"
+    gold_sql: "SELECT count(*) as loan_count FROM bank.loans WHERE status = 'DISBURSED'"
+    expected_row_count_min: 1
+    expected_columns: ["loan_count"]
+    must_contain_tables: ["bank.loans"]
+    should_clarify: false
+
+  - id: q05
+    natural_language_query: "What is the maximum principal amount among all loans?"
+    category: "simple_aggregation"
+    gold_sql: "SELECT max(principal) as max_loan_amount FROM bank.loans"
+    expected_row_count_min: 1
+    expected_columns: ["max_loan_amount"]
+    must_contain_tables: ["bank.loans"]
+    should_clarify: false
+
+  # Category 2: Multi-table joins (8)
+  - id: q06
+    natural_language_query: "Show top 5 branches by loan volume"
+    category: "multi_table_joins"
+    gold_sql: "SELECT b.branch_id, b.name as branch_name, sum(l.principal) as total_loan_volume FROM bank.branches b JOIN bank.customers c ON b.branch_id = c.branch_id JOIN bank.loans l ON c.customer_id = l.customer_id GROUP BY b.branch_id, b.name ORDER BY total_loan_volume DESC LIMIT 5"
+    expected_row_count_min: 1
+    expected_columns: ["branch_id", "branch_name", "total_loan_volume"]
+    must_contain_tables: ["bank.branches", "bank.customers", "bank.loans"]
+    should_clarify: false
+
+  - id: q07
+    natural_language_query: "List customer names with their account balances"
+    category: "multi_table_joins"
+    gold_sql: "SELECT c.full_name, a.account_id, a.balance FROM bank.customers c JOIN bank.accounts a ON c.customer_id = a.customer_id LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["full_name", "account_id", "balance"]
+    must_contain_tables: ["bank.customers", "bank.accounts"]
+    should_clarify: false
+
+  - id: q08
+    natural_language_query: "Find total loan principal by branch city"
+    category: "multi_table_joins"
+    gold_sql: "SELECT b.city, sum(l.principal) as total_principal FROM bank.branches b JOIN bank.customers c ON b.branch_id = c.branch_id JOIN bank.loans l ON c.customer_id = l.customer_id GROUP BY b.city ORDER BY total_principal DESC"
+    expected_row_count_min: 1
+    expected_columns: ["city", "total_principal"]
+    must_contain_tables: ["bank.branches", "bank.customers", "bank.loans"]
+    should_clarify: false
+
+  - id: q09
+    natural_language_query: "List accounts belonging to customers with risk flags"
+    category: "multi_table_joins"
+    gold_sql: "SELECT a.account_id, a.balance, rf.flag_type, rf.severity FROM bank.accounts a JOIN bank.risk_flags rf ON a.account_id = rf.account_id LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["account_id", "balance", "flag_type", "severity"]
+    must_contain_tables: ["bank.accounts", "bank.risk_flags"]
+    should_clarify: false
+
+  - id: q10
+    natural_language_query: "Show transaction count per branch"
+    category: "multi_table_joins"
+    gold_sql: "SELECT b.name as branch_name, count(t.txn_id) as txn_count FROM bank.branches b JOIN bank.accounts a ON b.branch_id = a.branch_id JOIN bank.transactions t ON a.account_id = t.account_id GROUP BY b.name ORDER BY txn_count DESC LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["branch_name", "txn_count"]
+    must_contain_tables: ["bank.branches", "bank.accounts", "bank.transactions"]
+    should_clarify: false
+
+  - id: q11
+    natural_language_query: "List customers who have both savings and current accounts"
+    category: "multi_table_joins"
+    gold_sql: "SELECT c.customer_id, c.full_name FROM bank.customers c JOIN bank.accounts a ON c.customer_id = a.customer_id JOIN bank.account_types at ON a.type_id = at.type_id WHERE at.name IN ('SAVINGS', 'CURRENT') GROUP BY c.customer_id, c.full_name HAVING count(DISTINCT at.name) >= 2 LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["customer_id", "full_name"]
+    must_contain_tables: ["bank.customers", "bank.accounts", "bank.account_types"]
+    should_clarify: false
+
+  - id: q12
+    natural_language_query: "Find top 5 customers with largest total loan principal"
+    category: "multi_table_joins"
+    gold_sql: "SELECT c.customer_id, c.full_name, sum(l.principal) as total_debt FROM bank.customers c JOIN bank.loans l ON c.customer_id = l.customer_id GROUP BY c.customer_id, c.full_name ORDER BY total_debt DESC LIMIT 5"
+    expected_row_count_min: 1
+    expected_columns: ["customer_id", "full_name", "total_debt"]
+    must_contain_tables: ["bank.customers", "bank.loans"]
+    should_clarify: false
+
+  - id: q13
+    natural_language_query: "Show total transactions amount grouped by branch city"
+    category: "multi_table_joins"
+    gold_sql: "SELECT b.city, sum(t.amount) as total_volume FROM bank.branches b JOIN bank.accounts a ON b.branch_id = a.branch_id JOIN bank.transactions t ON a.account_id = t.account_id GROUP BY b.city ORDER BY total_volume DESC LIMIT 5"
+    expected_row_count_min: 1
+    expected_columns: ["city", "total_volume"]
+    must_contain_tables: ["bank.branches", "bank.accounts", "bank.transactions"]
+    should_clarify: false
+
+  # Category 3: Complex date / interval arithmetic (6)
+  - id: q14
+    natural_language_query: "How many accounts were opened in the last 180 days?"
+    category: "date_arithmetic"
+    gold_sql: "SELECT count(*) as recent_accounts FROM bank.accounts WHERE opened_at >= date('now', '-180 days')"
+    expected_row_count_min: 1
+    expected_columns: ["recent_accounts"]
+    must_contain_tables: ["bank.accounts"]
+    should_clarify: false
+
+  - id: q15
+    natural_language_query: "Find total repayments due in the year 2026"
+    category: "date_arithmetic"
+    gold_sql: "SELECT sum(amount_due) as total_due FROM bank.repayments WHERE strftime('%Y', due_date) = '2026'"
+    expected_row_count_min: 1
+    expected_columns: ["total_due"]
+    must_contain_tables: ["bank.repayments"]
+    should_clarify: false
+
+  - id: q16
+    natural_language_query: "List transactions that occurred in the last 30 days"
+    category: "date_arithmetic"
+    gold_sql: "SELECT count(*) as recent_txns FROM bank.transactions WHERE txn_ts >= datetime('now', '-30 days')"
+    expected_row_count_min: 1
+    expected_columns: ["recent_txns"]
+    must_contain_tables: ["bank.transactions"]
+    should_clarify: false
+
+  - id: q17
+    natural_language_query: "Count customers registered per month in 2026"
+    category: "date_arithmetic"
+    gold_sql: "SELECT strftime('%m', created_at) as month, count(*) as customer_count FROM bank.customers WHERE strftime('%Y', created_at) = '2026' GROUP BY month ORDER BY month"
+    expected_row_count_min: 1
+    expected_columns: ["month", "customer_count"]
+    must_contain_tables: ["bank.customers"]
+    should_clarify: false
+
+  - id: q18
+    natural_language_query: "Find overdue loan repayments that are more than 30 days past due"
+    category: "date_arithmetic"
+    gold_sql: "SELECT repayment_id, loan_id, due_date, amount_due FROM bank.repayments WHERE days_past_due >= 30 LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["repayment_id", "loan_id", "due_date", "amount_due"]
+    must_contain_tables: ["bank.repayments"]
+    should_clarify: false
+
+  - id: q19
+    natural_language_query: "Find average account age in days"
+    category: "date_arithmetic"
+    gold_sql: "SELECT avg(julianday('now') - julianday(opened_at)) as avg_age_days FROM bank.accounts WHERE opened_at IS NOT NULL"
+    expected_row_count_min: 1
+    expected_columns: ["avg_age_days"]
+    must_contain_tables: ["bank.accounts"]
+    should_clarify: false
+
+  # Category 4: Business definition disambiguation (8)
+  - id: q20
+    natural_language_query: "List customers with high risk flag and delinquent loans"
+    category: "business_definitions"
+    gold_sql: "SELECT DISTINCT c.customer_id, c.full_name FROM bank.customers c JOIN bank.accounts a ON c.customer_id = a.customer_id JOIN bank.risk_flags rf ON a.account_id = rf.account_id JOIN bank.loans l ON c.customer_id = l.customer_id JOIN bank.repayments r ON l.loan_id = r.loan_id WHERE rf.severity = 'HIGH' AND r.days_past_due >= 30 LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["customer_id", "full_name"]
+    must_contain_tables: ["bank.customers", "bank.accounts", "bank.risk_flags", "bank.loans", "bank.repayments"]
+    should_clarify: false
+
+  - id: q21
+    natural_language_query: "Count of NPA loans"
+    category: "business_definitions"
+    gold_sql: "SELECT count(DISTINCT l.loan_id) as npa_count FROM bank.loans l JOIN bank.repayments r ON l.loan_id = r.loan_id WHERE r.days_past_due >= 90"
+    expected_row_count_min: 1
+    expected_columns: ["npa_count"]
+    must_contain_tables: ["bank.loans", "bank.repayments"]
+    should_clarify: false
+
+  - id: q22
+    natural_language_query: "List defaulter customers"
+    category: "business_definitions"
+    gold_sql: "SELECT DISTINCT c.customer_id, c.full_name FROM bank.customers c JOIN bank.loans l ON c.customer_id = l.customer_id JOIN bank.repayments r ON l.loan_id = r.loan_id WHERE r.days_past_due >= 90 LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["customer_id", "full_name"]
+    must_contain_tables: ["bank.customers", "bank.loans", "bank.repayments"]
+    should_clarify: false
+
+  - id: q23
+    natural_language_query: "How many active customers exist?"
+    category: "business_definitions"
+    gold_sql: "SELECT count(DISTINCT c.customer_id) as active_customers FROM bank.customers c JOIN bank.accounts a ON c.customer_id = a.customer_id WHERE c.kyc_status = 'VERIFIED' AND a.status = 'ACTIVE'"
+    expected_row_count_min: 1
+    expected_columns: ["active_customers"]
+    must_contain_tables: ["bank.customers", "bank.accounts"]
+    should_clarify: false
+
+  - id: q24
+    natural_language_query: "Count customers in Prime credit tier"
+    category: "business_definitions"
+    gold_sql: "SELECT count(DISTINCT cs.customer_id) as prime_customers FROM bank.credit_scores cs JOIN bank.credit_tiers ct ON cs.tier_id = ct.tier_id WHERE ct.name = 'A'"
+    expected_row_count_min: 1
+    expected_columns: ["prime_customers"]
+    must_contain_tables: ["bank.credit_scores", "bank.credit_tiers"]
+    should_clarify: false
+
+  - id: q25
+    natural_language_query: "Count customers in Subprime credit tier"
+    category: "business_definitions"
+    gold_sql: "SELECT count(DISTINCT cs.customer_id) as subprime_customers FROM bank.credit_scores cs JOIN bank.credit_tiers ct ON cs.tier_id = ct.tier_id WHERE ct.name = 'E'"
+    expected_row_count_min: 1
+    expected_columns: ["subprime_customers"]
+    must_contain_tables: ["bank.credit_scores", "bank.credit_tiers"]
+    should_clarify: false
+
+  - id: q26
+    natural_language_query: "Total principal for delinquent loans"
+    category: "business_definitions"
+    gold_sql: "SELECT sum(l.principal) as delinquent_principal FROM bank.loans l WHERE l.loan_id IN (SELECT DISTINCT r.loan_id FROM bank.repayments r WHERE r.days_past_due >= 30)"
+    expected_row_count_min: 1
+    expected_columns: ["delinquent_principal"]
+    must_contain_tables: ["bank.loans", "bank.repayments"]
+    should_clarify: false
+
+  - id: q27
+    natural_language_query: "List accounts on hold"
+    category: "business_definitions"
+    gold_sql: "SELECT account_id, customer_id, balance FROM bank.accounts WHERE status = 'HOLD' LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["account_id", "customer_id", "balance"]
+    must_contain_tables: ["bank.accounts"]
+    should_clarify: false
+
+  # Category 5: Edge cases (5)
+  - id: q28
+    natural_language_query: "Find transactions for account 9999999"
+    category: "edge_cases"
+    gold_sql: "SELECT * FROM bank.transactions WHERE account_id = 9999999"
+    expected_row_count_min: 0
+    expected_columns: []
+    must_contain_tables: ["bank.transactions"]
+    should_clarify: false
+
+  - id: q29
+    natural_language_query: "Show loans with zero principal"
+    category: "edge_cases"
+    gold_sql: "SELECT loan_id, principal, status FROM bank.loans WHERE principal = 0 LIMIT 5"
+    expected_row_count_min: 0
+    expected_columns: ["loan_id", "principal", "status"]
+    must_contain_tables: ["bank.loans"]
+    should_clarify: false
+
+  - id: q30
+    natural_language_query: "Find customers with pending kyc"
+    category: "edge_cases"
+    gold_sql: "SELECT customer_id, full_name FROM bank.customers WHERE kyc_status = 'PENDING' LIMIT 5"
+    expected_row_count_min: 0
+    expected_columns: ["customer_id", "full_name"]
+    must_contain_tables: ["bank.customers"]
+    should_clarify: false
+
+  - id: q31
+    natural_language_query: "Calculate loan repayment collection ratio"
+    category: "edge_cases"
+    gold_sql: "SELECT coalesce(sum(amount_paid) * 1.0 / nullif(sum(amount_due), 0), 0) as collection_ratio FROM bank.repayments"
+    expected_row_count_min: 1
+    expected_columns: ["collection_ratio"]
+    must_contain_tables: ["bank.repayments"]
+    should_clarify: false
+
+  - id: q32
+    natural_language_query: "Count accounts with zero balance"
+    category: "edge_cases"
+    gold_sql: "SELECT count(*) as zero_balance_count FROM bank.accounts WHERE balance = 0"
+    expected_row_count_min: 1
+    expected_columns: ["zero_balance_count"]
+    must_contain_tables: ["bank.accounts"]
+    should_clarify: false
+
+  # Category 6: Ambiguous queries (4)
+  - id: q33
+    natural_language_query: "Show performance"
+    category: "ambiguous"
+    gold_sql: ""
+    expected_row_count_min: 0
+    expected_columns: []
+    must_contain_tables: []
+    should_clarify: true
+
+  - id: q34
+    natural_language_query: "Get branch stats"
+    category: "ambiguous"
+    gold_sql: ""
+    expected_row_count_min: 0
+    expected_columns: []
+    must_contain_tables: []
+    should_clarify: true
+
+  - id: q35
+    natural_language_query: "Show risk"
+    category: "ambiguous"
+    gold_sql: ""
+    expected_row_count_min: 0
+    expected_columns: []
+    must_contain_tables: []
+    should_clarify: true
+
+  - id: q36
+    natural_language_query: "Who is the best?"
+    category: "ambiguous"
+    gold_sql: ""
+    expected_row_count_min: 0
+    expected_columns: []
+    must_contain_tables: []
+    should_clarify: true
+
+  # Category 7: Reconciliations & Governed Actions (4)
+  - id: q37
+    natural_language_query: "Reconcile daily ledger vs transaction sums for account 10482"
+    category: "reconciliations"
+    gold_sql: "SELECT le.account_id, le.entry_date, sum(le.credit - le.debit) as ledger_net, coalesce(sum(CASE WHEN t.direction = 'CR' THEN t.amount ELSE -t.amount END), 0) as txn_net FROM bank.ledger_entries le LEFT JOIN bank.transactions t ON le.account_id = t.account_id AND strftime('%Y-%m-%d', t.txn_ts) = le.entry_date WHERE le.account_id = 10482 GROUP BY le.account_id, le.entry_date"
+    expected_row_count_min: 1
+    expected_columns: ["account_id", "entry_date", "ledger_net", "txn_net"]
+    must_contain_tables: ["bank.ledger_entries", "bank.transactions"]
+    should_clarify: false
+
+  - id: q38
+    natural_language_query: "Find all ledger entries with reconciliation mismatches"
+    category: "reconciliations"
+    gold_sql: "SELECT le.entry_id, le.account_id, le.entry_date, le.debit, le.credit FROM bank.ledger_entries le JOIN bank.accounts a ON le.account_id = a.account_id WHERE abs(a.balance - le.credit) > 0.01 LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["entry_id", "account_id", "entry_date", "debit", "credit"]
+    must_contain_tables: ["bank.ledger_entries", "bank.accounts"]
+    should_clarify: false
+
+  - id: q39
+    natural_language_query: "Show daily ledger summary for account 10482"
+    category: "reconciliations"
+    gold_sql: "SELECT entry_date, debit, credit FROM bank.ledger_entries WHERE account_id = 10482 ORDER BY entry_date DESC LIMIT 10"
+    expected_row_count_min: 1
+    expected_columns: ["entry_date", "debit", "credit"]
+    must_contain_tables: ["bank.ledger_entries"]
+    should_clarify: false
+
+  - id: q40
+    natural_language_query: "Activate account 10482"
+    category: "actions"
+    gold_sql: ""
+    expected_row_count_min: 0
+    expected_columns: []
+    must_contain_tables: ["bank.accounts"]
+    should_clarify: false
+    action_name: "SET_ACCOUNT_STATUS"

@@ -85,3 +85,7 @@ class SqlExecutor:
             asyncio.to_thread(self.run_sync, sql),
             timeout=self.timeout_ms / 1000.0,
         )
+
+
+def execute_read_only_query(sql: str, role: str = "nexus_reader") -> ExecutionResult:
+    return SqlExecutor(role=role).run_sync(sql)

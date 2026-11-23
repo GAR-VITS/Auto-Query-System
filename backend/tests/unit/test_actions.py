@@ -6,20 +6,20 @@ Tests parameter validation, branch scope, and preconditions.
 import pytest
 from app.governance.actions import ActionManager
 from app.governance.rbac import UserSession
+from app.db.session import get_db_connection
 
 @pytest.fixture
 def action_mgr():
     return ActionManager()
 
 def test_action_branch_officer_own_branch(action_mgr):
-    # Find an account belonging to branch 1
-    from app.db.session import get_db_connection
+    # Find an account belonging to branch 1 that is ACTIVE
     with get_db_connection("nexus_reader") as conn:
         cur = conn.cursor()
         cur.execute("SELECT account_id FROM accounts WHERE branch_id = 1 AND status = 'ACTIVE' LIMIT 1")
-        acc_id = cur.fetchone()[0]
+        row = cur.fetchone()
+        acc_id = row[0] if row else 1
 
-    # Officer in branch 1 updating their own branch account to HOLD
     officer = UserSession(user_id="officer", username="officer1", role="branch_officer", branch_id=1)
     preview = action_mgr.preview_action(
         action_name="SET_ACCOUNT_STATUS",
@@ -32,49 +32,63 @@ def test_action_branch_officer_own_branch(action_mgr):
     assert preview.confirmation_token is not None
 
 def test_action_branch_officer_foreign_branch_denied(action_mgr):
-    # Officer in branch 99 attempting to update account in branch 1
+    with get_db_connection("nexus_reader") as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT account_id, branch_id, status FROM accounts WHERE branch_id != 99 LIMIT 1")
+        acc_id, branch_id, curr_status = cur.fetchone()
+    target_status = "HOLD" if curr_status != "HOLD" else "ACTIVE"
+
     foreign_officer = UserSession(user_id="officer_foreign", username="officer_foreign", role="branch_officer", branch_id=99)
     with pytest.raises(PermissionError) as exc_info:
         action_mgr.preview_action(
             action_name="SET_ACCOUNT_STATUS",
-            params={"account_id": 1, "new_status": "HOLD", "reason": "Foreign branch attempt"},
+            params={"account_id": acc_id, "new_status": target_status, "reason": "Foreign branch attempt"},
             user=foreign_officer,
             request_id="req_test_02",
         )
     assert "scope violation" in str(exc_info.value).lower()
 
 def test_action_viewer_denied(action_mgr):
+    with get_db_connection("nexus_reader") as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT account_id, status FROM accounts LIMIT 1")
+        acc_id, curr_status = cur.fetchone()
+    target_status = "HOLD" if curr_status != "HOLD" else "ACTIVE"
+
     viewer = UserSession(user_id="viewer", username="viewer1", role="viewer")
     with pytest.raises(PermissionError) as exc_info:
         action_mgr.preview_action(
             action_name="SET_ACCOUNT_STATUS",
-            params={"account_id": 1, "new_status": "HOLD", "reason": "Unauthorized attempt"},
+            params={"account_id": acc_id, "new_status": target_status, "reason": "Unauthorized attempt"},
             user=viewer,
             request_id="req_test_03",
         )
     assert "cannot update account status" in str(exc_info.value).lower()
 
 def test_action_precondition_same_status(action_mgr):
-    # Account 1 is already in ACTIVE status
+    with get_db_connection("nexus_reader") as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT account_id, status FROM accounts LIMIT 1")
+        acc_id, curr_status = cur.fetchone()
+
     manager = UserSession(user_id="manager", username="manager1", role="credit_manager")
     with pytest.raises(ValueError) as exc_info:
         action_mgr.preview_action(
             action_name="SET_ACCOUNT_STATUS",
-            params={"account_id": 1, "new_status": "ACTIVE", "reason": "Already active"},
+            params={"account_id": acc_id, "new_status": curr_status, "reason": "Already in this status"},
             user=manager,
             request_id="req_test_04",
         )
-    assert "already in active status" in str(exc_info.value).lower()
+    assert f"already in {curr_status.lower()} status" in str(exc_info.value).lower()
 
 def test_action_confirm_execution_and_idempotency(action_mgr):
     manager = UserSession(user_id="manager", username="manager1", role="credit_manager")
     
-    # Dynamically find an account that is ACTIVE to put on HOLD
-    from app.db.session import get_db_connection
     with get_db_connection("nexus_reader") as conn:
         cur = conn.cursor()
-        cur.execute("SELECT account_id FROM accounts WHERE status = 'ACTIVE' LIMIT 1")
-        acc_id = cur.fetchone()[0]
+        cur.execute("SELECT account_id, status FROM accounts WHERE status = 'ACTIVE' LIMIT 1")
+        row = cur.fetchone()
+        acc_id = row[0] if row else 2
 
     preview = action_mgr.preview_action(
         action_name="SET_ACCOUNT_STATUS",
@@ -102,7 +116,7 @@ def test_action_confirm_execution_and_idempotency(action_mgr):
         confirmation_token=preview.confirmation_token,
         idempotency_key="idemp_key_999",
         user=manager,
-        request_id="req_test_05_exec2",
+        request_id="req_test_05_exec_dup",
     )
     assert res2.success
-    assert "already applied" in res2.message.lower()
+    assert res2.audit_seq == res1.audit_seq
