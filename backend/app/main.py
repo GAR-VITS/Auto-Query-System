@@ -1,87 +1,71 @@
-import os
-import sys
-from pathlib import Path
+"""
+NexusDB FastAPI Application Entry Point
+"""
+
 from contextlib import asynccontextmanager
-
-# Automatically ensure both backend directory and root directory are in sys.path
-backend_dir = Path(__file__).resolve().parent.parent
-root_dir = backend_dir.parent
-for d in [str(backend_dir), str(root_dir)]:
-    if d not in sys.path:
-        sys.path.insert(0, d)
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
-try:
-    from app.api.query import router as query_router
-    from app.core.config import get_settings
-except ImportError:
-    from backend.app.api.query import router as query_router
-    from backend.app.core.config import get_settings
+from app.config import get_settings
+from app.api.health import router as health_router
+from app.api.auth import router as auth_router
+from app.api.query import router as query_router
+from app.api.actions import router as actions_router
+from app.api.audit import router as audit_router
+from app.api.schema import router as schema_router
+from app.api.metrics import router as metrics_router
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure SQLite fallback database is initialized if not present
-    if not settings.sqlite_db_path.exists():
-        try:
-            from db.init_sqlite import init_sqlite_database
-        except ImportError:
-            from backend.db.init_sqlite import init_sqlite_database
-        init_sqlite_database(settings.sqlite_db_path)
+    # Initialize DB and index schema memory on startup
+    from app.db.session import init_database
+    from app.memory.store import get_schema_memory
+    init_database()
+    get_schema_memory()
     yield
 
 
 app = FastAPI(
-    title="NexusDB — Agentic Enterprise AI Database Backend",
-    description="Multi-agent natural language database query platform with self-correcting query execution.",
+    title="NexusDB",
+    description="Self-correcting multi-agent SQL & governed write-back platform",
     version="1.0.0",
     lifespan=lifespan,
 )
 
-# Robust CORS configuration for local and cloud deployment (Render, Vercel, Netlify, custom domains)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins if settings.allowed_origins != ["*"] else ["*"],
-    allow_origin_regex=r"https?://.*",
+    allow_origins=settings.cors_origins_list if settings.cors_origins_list else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(query_router, prefix="/api", tags=["Queries"])
+# Register routers
+app.include_router(health_router)
+app.include_router(auth_router)
+app.include_router(query_router)
+app.include_router(actions_router)
+app.include_router(audit_router)
+app.include_router(schema_router)
+app.include_router(metrics_router)
 
 
 @app.get("/")
 async def root():
     return {
-        "name": "NexusDB Agentic AI Backend",
+        "name": "NexusDB Agentic Platform",
         "status": "online",
         "version": "1.0.0",
-        "endpoints": {
-            "query": "/api/query",
-            "health": "/health",
-            "stats": "/api/stats",
-            "agents": "/api/agents",
-            "audit": "/api/audit",
-            "recent_queries": "/api/queries/recent",
-        },
-    }
-
-
-@app.get("/health")
-async def health():
-    return {
-        "status": "healthy",
-        "database": "online",
-        "model": settings.gemini_model,
+        "docs": "/docs",
+        "health": "/health",
     }
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    import os
+    import uvicorn
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)

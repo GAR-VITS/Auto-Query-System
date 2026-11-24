@@ -1,0 +1,498 @@
+{
+  "timestamp": "2026-11-23T20:31:23Z",
+  "total_questions": 40,
+  "total_passed": 40,
+  "execution_accuracy_pct": 100.0,
+  "first_attempt_accuracy_pct": 82.5,
+  "repaired_accuracy_pct": 100.0,
+  "overall_repair_rate_pct": 5.0,
+  "repairs_attempted": 2,
+  "repairs_succeeded": 2,
+  "p50_latency_ms": 489.8,
+  "p95_latency_ms": 661.5,
+  "context_saved_pct": 75.9,
+  "category_breakdown": {
+    "simple_aggregation": {
+      "total": 5,
+      "correct": 5,
+      "repaired": 1
+    },
+    "multi_table_joins": {
+      "total": 8,
+      "correct": 8,
+      "repaired": 0
+    },
+    "date_arithmetic": {
+      "total": 6,
+      "correct": 6,
+      "repaired": 0
+    },
+    "business_definitions": {
+      "total": 8,
+      "correct": 8,
+      "repaired": 1
+    },
+    "edge_cases": {
+      "total": 5,
+      "correct": 5,
+      "repaired": 0
+    },
+    "ambiguous": {
+      "total": 4,
+      "correct": 4,
+      "repaired": 0
+    },
+    "reconciliations": {
+      "total": 3,
+      "correct": 3,
+      "repaired": 0
+    },
+    "actions": {
+      "total": 1,
+      "correct": 1,
+      "repaired": 0
+    }
+  },
+  "results": [
+    {
+      "id": "q01",
+      "query": "How many total customers are registered?",
+      "category": "simple_aggregation",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 557.3,
+      "error": null
+    },
+    {
+      "id": "q02",
+      "query": "What is the total balance across all active accounts?",
+      "category": "simple_aggregation",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 431.4,
+      "error": null
+    },
+    {
+      "id": "q03",
+      "query": "What is the average credit score of customers?",
+      "category": "simple_aggregation",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": false,
+      "repaired": true,
+      "latency_ms": 691.3,
+      "error": null
+    },
+    {
+      "id": "q04",
+      "query": "How many loans are currently disbursed?",
+      "category": "simple_aggregation",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 526.0,
+      "error": null
+    },
+    {
+      "id": "q05",
+      "query": "What is the maximum principal amount among all loans?",
+      "category": "simple_aggregation",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 435.1,
+      "error": null
+    },
+    {
+      "id": "q06",
+      "query": "Show top 5 branches by loan volume",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 450.4,
+      "error": null
+    },
+    {
+      "id": "q07",
+      "query": "List customer names with their account balances",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 490.6,
+      "error": null
+    },
+    {
+      "id": "q08",
+      "query": "Find total loan principal by branch city",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 440.1,
+      "error": null
+    },
+    {
+      "id": "q09",
+      "query": "List accounts belonging to customers with risk flags",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 494.8,
+      "error": null
+    },
+    {
+      "id": "q10",
+      "query": "Show transaction count per branch",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 547.6,
+      "error": null
+    },
+    {
+      "id": "q11",
+      "query": "List customers who have both savings and current accounts",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 534.1,
+      "error": null
+    },
+    {
+      "id": "q12",
+      "query": "Find top 5 customers with largest total loan principal",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 497.5,
+      "error": null
+    },
+    {
+      "id": "q13",
+      "query": "Show total transactions amount grouped by branch city",
+      "category": "multi_table_joins",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 539.6,
+      "error": null
+    },
+    {
+      "id": "q14",
+      "query": "How many accounts were opened in the last 180 days?",
+      "category": "date_arithmetic",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 451.3,
+      "error": null
+    },
+    {
+      "id": "q15",
+      "query": "Find total repayments due in the year 2026",
+      "category": "date_arithmetic",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 432.0,
+      "error": null
+    },
+    {
+      "id": "q16",
+      "query": "List transactions that occurred in the last 30 days",
+      "category": "date_arithmetic",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 508.4,
+      "error": null
+    },
+    {
+      "id": "q17",
+      "query": "Count customers registered per month in 2026",
+      "category": "date_arithmetic",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 415.0,
+      "error": null
+    },
+    {
+      "id": "q18",
+      "query": "Find overdue loan repayments that are more than 30 days past due",
+      "category": "date_arithmetic",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 430.5,
+      "error": null
+    },
+    {
+      "id": "q19",
+      "query": "Find average account age in days",
+      "category": "date_arithmetic",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 509.1,
+      "error": null
+    },
+    {
+      "id": "q20",
+      "query": "List customers with high risk flag and delinquent loans",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 625.3,
+      "error": null
+    },
+    {
+      "id": "q21",
+      "query": "Count of NPA loans",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 617.6,
+      "error": null
+    },
+    {
+      "id": "q22",
+      "query": "List defaulter customers",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 518.2,
+      "error": null
+    },
+    {
+      "id": "q23",
+      "query": "How many active customers exist?",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 506.1,
+      "error": null
+    },
+    {
+      "id": "q24",
+      "query": "Count customers in Prime credit tier",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 485.8,
+      "error": null
+    },
+    {
+      "id": "q25",
+      "query": "Count customers in Subprime credit tier",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": false,
+      "repaired": true,
+      "latency_ms": 741.0,
+      "error": null
+    },
+    {
+      "id": "q26",
+      "query": "Total principal for delinquent loans",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 477.2,
+      "error": null
+    },
+    {
+      "id": "q27",
+      "query": "List accounts on hold",
+      "category": "business_definitions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 541.1,
+      "error": null
+    },
+    {
+      "id": "q28",
+      "query": "Find transactions for account 9999999",
+      "category": "edge_cases",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 488.9,
+      "error": null
+    },
+    {
+      "id": "q29",
+      "query": "Show loans with zero principal",
+      "category": "edge_cases",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 524.4,
+      "error": null
+    },
+    {
+      "id": "q30",
+      "query": "Find customers with pending kyc",
+      "category": "edge_cases",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 481.3,
+      "error": null
+    },
+    {
+      "id": "q31",
+      "query": "Calculate loan repayment collection ratio",
+      "category": "edge_cases",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 500.2,
+      "error": null
+    },
+    {
+      "id": "q32",
+      "query": "Count accounts with zero balance",
+      "category": "edge_cases",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 469.8,
+      "error": null
+    },
+    {
+      "id": "q33",
+      "query": "Show performance",
+      "category": "ambiguous",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 277.1,
+      "error": null
+    },
+    {
+      "id": "q34",
+      "query": "Get branch stats",
+      "category": "ambiguous",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 275.7,
+      "error": null
+    },
+    {
+      "id": "q35",
+      "query": "Show risk",
+      "category": "ambiguous",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 243.4,
+      "error": null
+    },
+    {
+      "id": "q36",
+      "query": "Who is the best?",
+      "category": "ambiguous",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 250.0,
+      "error": null
+    },
+    {
+      "id": "q37",
+      "query": "Reconcile daily ledger vs transaction sums for account 10482",
+      "category": "reconciliations",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 483.1,
+      "error": null
+    },
+    {
+      "id": "q38",
+      "query": "Find all ledger entries with reconciliation mismatches",
+      "category": "reconciliations",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 482.7,
+      "error": null
+    },
+    {
+      "id": "q39",
+      "query": "Show daily ledger summary for account 10482",
+      "category": "reconciliations",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 659.9,
+      "error": null
+    },
+    {
+      "id": "q40",
+      "query": "Activate account 10482",
+      "category": "actions",
+      "status": "PASS",
+      "passed": true,
+      "first_attempt": true,
+      "repaired": false,
+      "latency_ms": 282.4,
+      "error": null
+    }
+  ]
+}

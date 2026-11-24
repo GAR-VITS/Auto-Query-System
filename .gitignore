@@ -4,6 +4,13 @@
 **/__pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+
+# Databases & Vector Memory
+*.db
+*.db-journal
+*.sqlite3
+.chroma/
 
 # Node & Frontend
 **/node_modules/
@@ -17,4 +24,4 @@
 .vscode/
 .idea/
 .DS_Store
-*.sqlite3
+Thumbs.db
