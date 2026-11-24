@@ -13,9 +13,7 @@ load_dotenv(ROOT_DIR / ".env")
 class Settings:
     def __init__(self):
         # --- LLM ---
-        self.gemini_api_key: str = os.getenv(
-            "GEMINI_API_KEY", "AQ.Ab8RN6KHrKSCSVWhIXVC8TefEy78Gw2ruW69c0ZmKJiNNoFgxw"
-        )
+        self.gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
         self.gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
         # --- Postgres ---

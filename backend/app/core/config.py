@@ -14,10 +14,7 @@ load_dotenv(BASE_DIR / ".env")
 
 class Settings:
     def __init__(self):
-        self.gemini_api_key: str = os.getenv(
-            "GEMINI_API_KEY",
-            "AQ.Ab8RN6KHrKSCSVWhIXVC8TefEy78Gw2ruW69c0ZmKJiNNoFgxw",
-        )
+        self.gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
         self.gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         self.database_url: str = os.getenv(
             "DATABASE_URL",
